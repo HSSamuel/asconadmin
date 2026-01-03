@@ -116,6 +116,20 @@ function AdminDashboard({ token, onLogout }) {
     fetchData();
   }, [fetchData]);
 
+  // --- HELPER: SWITCH TABS & CLEAR FORMS ---
+  const switchTab = (tab) => {
+    setActiveTab(tab);
+    setEditingId(null);
+    setEventForm({
+      title: "",
+      description: "",
+      location: "",
+      type: "News",
+      image: "",
+    });
+    setProgForm({ title: "", code: "" });
+  };
+
   // --- USER ACTIONS ---
   const approveUser = async (id, name) => {
     try {
@@ -153,7 +167,7 @@ function AdminDashboard({ token, onLogout }) {
   };
 
   // --- EVENT ACTIONS ---
-  const startEdit = (event) => {
+  const startEditEvent = (event) => {
     setEditingId(event._id);
     setEventForm({
       title: event.title,
@@ -165,7 +179,7 @@ function AdminDashboard({ token, onLogout }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const cancelEdit = () => {
+  const cancelEditEvent = () => {
     setEditingId(null);
     setEventForm({
       title: "",
@@ -207,17 +221,45 @@ function AdminDashboard({ token, onLogout }) {
     setDeleteModal({ show: true, id: id, type: "event" });
   };
 
-  // --- PROGRAMME ACTIONS ---
-  const addProgramme = async (e) => {
+  // --- PROGRAMME ACTIONS (UPDATED) ---
+
+  // 1. Start Editing
+  const startEditProgramme = (prog) => {
+    setEditingId(prog._id);
+    setProgForm({
+      title: prog.title,
+      code: prog.code || "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // 2. Cancel Editing
+  const cancelEditProgramme = () => {
+    setEditingId(null);
+    setProgForm({ title: "", code: "" });
+  };
+
+  // 3. Handle Submit (Add OR Update)
+  const handleProgrammeSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post("/admin/programmes", progForm);
-      showToast("Programme added successfully!", "success");
+      if (editingId) {
+        // UPDATE LOGIC
+        await API.put(`/admin/programmes/${editingId}`, progForm);
+        showToast("Programme updated successfully!", "success");
+        setEditingId(null);
+      } else {
+        // ADD LOGIC
+        await API.post("/admin/programmes", progForm);
+        showToast("Programme added successfully!", "success");
+      }
+
+      // Reset Form & Refresh
       setProgForm({ title: "", code: "" });
       fetchData();
     } catch (err) {
       showToast(
-        err.response?.data?.message || "Failed to add programme.",
+        err.response?.data?.message || "Failed to save programme.",
         "error"
       );
     }
@@ -284,7 +326,7 @@ function AdminDashboard({ token, onLogout }) {
 
         <div className="tabs-centered">
           <button
-            onClick={() => setActiveTab("users")}
+            onClick={() => switchTab("users")}
             className={`approve-btn ${activeTab === "users" ? "" : "inactive"}`}
             style={{
               backgroundColor: activeTab === "users" ? "#1B5E3A" : "#ccc",
@@ -293,7 +335,7 @@ function AdminDashboard({ token, onLogout }) {
             Users
           </button>
           <button
-            onClick={() => setActiveTab("events")}
+            onClick={() => switchTab("events")}
             className={`approve-btn ${
               activeTab === "events" ? "" : "inactive"
             }`}
@@ -304,7 +346,7 @@ function AdminDashboard({ token, onLogout }) {
             Events
           </button>
           <button
-            onClick={() => setActiveTab("programmes")}
+            onClick={() => switchTab("programmes")}
             className={`approve-btn ${
               activeTab === "programmes" ? "" : "inactive"
             }`}
@@ -567,7 +609,7 @@ function AdminDashboard({ token, onLogout }) {
                   {editingId && (
                     <button
                       type="button"
-                      onClick={cancelEdit}
+                      onClick={cancelEditEvent}
                       className="delete-btn"
                       style={{ flex: 0.3, backgroundColor: "#666" }}
                     >
@@ -619,7 +661,7 @@ function AdminDashboard({ token, onLogout }) {
                     {canEdit ? (
                       <>
                         <button
-                          onClick={() => startEdit(event)}
+                          onClick={() => startEditEvent(event)}
                           className="approve-btn"
                           style={{
                             padding: "5px 10px",
@@ -648,7 +690,7 @@ function AdminDashboard({ token, onLogout }) {
         </div>
       )}
 
-      {/* TAB 3: PROGRAMMES */}
+      {/* TAB 3: PROGRAMMES (✅ UPDATED FOR EDITING) */}
       {activeTab === "programmes" && (
         <div>
           {canEdit ? (
@@ -661,11 +703,16 @@ function AdminDashboard({ token, onLogout }) {
                 border: "1px solid #ddd",
               }}
             >
-              <h2 style={{ color: "#1B5E3A", marginTop: 0 }}>
-                🎓 Add New Programme
+              <h2
+                style={{
+                  color: editingId ? "#d4af37" : "#1B5E3A",
+                  marginTop: 0,
+                }}
+              >
+                {editingId ? "✏️ Edit Programme" : "🎓 Add New Programme"}
               </h2>
               <form
-                onSubmit={addProgramme}
+                onSubmit={handleProgrammeSubmit}
                 style={{ display: "flex", gap: "10px" }}
               >
                 <input
@@ -685,9 +732,27 @@ function AdminDashboard({ token, onLogout }) {
                     setProgForm({ ...progForm, code: e.target.value })
                   }
                 />
-                <button type="submit" className="approve-btn">
-                  ADD
+                <button
+                  type="submit"
+                  className="approve-btn"
+                  style={{
+                    backgroundColor: editingId ? "#d4af37" : "#1B5E3A",
+                  }}
+                >
+                  {editingId ? "UPDATE" : "ADD"}
                 </button>
+
+                {/* ✅ CANCEL BUTTON FOR PROGRAMMES */}
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={cancelEditProgramme}
+                    className="delete-btn"
+                    style={{ backgroundColor: "#666" }}
+                  >
+                    CANCEL
+                  </button>
+                )}
               </form>
             </div>
           ) : (
@@ -711,12 +776,28 @@ function AdminDashboard({ token, onLogout }) {
                   <td data-label="Code">{prog.code || "-"}</td>
                   <td data-label="Action">
                     {canEdit ? (
-                      <button
-                        className="delete-btn"
-                        onClick={() => deleteProgrammeClick(prog._id)}
-                      >
-                        REMOVE
-                      </button>
+                      <>
+                        {/* ✅ EDIT BUTTON FOR PROGRAMMES */}
+                        <button
+                          onClick={() => startEditProgramme(prog)}
+                          className="approve-btn"
+                          style={{
+                            padding: "5px 10px",
+                            fontSize: "12px",
+                            marginRight: "5px",
+                            backgroundColor: "#3498db",
+                          }}
+                        >
+                          EDIT
+                        </button>
+
+                        <button
+                          className="delete-btn"
+                          onClick={() => deleteProgrammeClick(prog._id)}
+                        >
+                          REMOVE
+                        </button>
+                      </>
                     ) : (
                       <span style={{ color: "#ccc" }}>🔒</span>
                     )}
