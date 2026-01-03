@@ -378,130 +378,139 @@ function AdminDashboard({ token, onLogout }) {
       {/* TAB 1: USERS */}
       {activeTab === "users" && (
         <div>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Photo</th>
-                <th>Full Name</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {usersList.map((user) => (
-                <tr key={user._id}>
-                  <td data-label="Photo">
-                    {renderAvatar(user.profilePicture)}
-                  </td>
-                  <td data-label="Full Name">
-                    <strong>{user.fullName}</strong>
-                    <div style={{ fontSize: "12px", color: "#666" }}>
-                      {user.email}
-                    </div>
-                    {/* Visual indicators */}
-                    <div style={{ marginTop: "5px" }}>
-                      {user.isAdmin && (
-                        <span
-                          className="tag"
-                          style={{
-                            backgroundColor: "#007bff",
-                            color: "white",
-                            fontSize: "10px",
-                            marginRight: "5px",
-                          }}
-                        >
-                          ADMIN
-                        </span>
-                      )}
-                      {user.canEdit && (
-                        <span
-                          className="tag"
-                          style={{
-                            backgroundColor: "#d4af37",
-                            color: "white",
-                            fontSize: "10px",
-                          }}
-                        >
-                          EDITOR
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td data-label="Status">
-                    <span
-                      className={`status-badge ${
-                        user.isVerified ? "verified" : "pending"
-                      }`}
-                    >
-                      {user.isVerified ? "Verified" : "Pending"}
-                    </span>
-                  </td>
-                  <td data-label="Action">
-                    {/* ✅ ONLY SHOW ACTIONS IF USER HAS PERMISSION */}
-                    {canEdit ? (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "5px",
-                        }}
-                      >
-                        {!user.isVerified && (
-                          <button
-                            onClick={() => approveUser(user._id, user.fullName)}
-                            className="approve-btn"
-                            style={{ width: "100%" }}
-                          >
-                            VERIFY
-                          </button>
-                        )}
-
-                        {/* ✅ TOGGLE ADMIN BUTTON */}
-                        <button
-                          onClick={() => toggleAdmin(user._id)}
-                          className="approve-btn"
-                          style={{
-                            backgroundColor: user.isAdmin ? "#444" : "#007bff",
-                            fontSize: "10px",
-                            width: "100%",
-                          }}
-                        >
-                          {user.isAdmin ? "REMOVE ADMIN" : "MAKE ADMIN"}
-                        </button>
-
-                        {/* Grant/Revoke Edit Rights (Only if Admin) */}
+          {/* ✅ WRAPPED FOR SCROLLABLE TABLE */}
+          <div className="table-responsive">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Photo</th>
+                  <th>Full Name</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usersList.map((user) => (
+                  <tr key={user._id}>
+                    <td data-label="Photo">
+                      {renderAvatar(user.profilePicture)}
+                    </td>
+                    <td data-label="Full Name">
+                      <strong>{user.fullName}</strong>
+                      <div style={{ fontSize: "12px", color: "#666" }}>
+                        {user.email}
+                      </div>
+                      {/* Visual indicators */}
+                      <div style={{ marginTop: "5px" }}>
                         {user.isAdmin && (
+                          <span
+                            className="tag"
+                            style={{
+                              backgroundColor: "#007bff",
+                              color: "white",
+                              fontSize: "10px",
+                              marginRight: "5px",
+                            }}
+                          >
+                            ADMIN
+                          </span>
+                        )}
+                        {user.canEdit && (
+                          <span
+                            className="tag"
+                            style={{
+                              backgroundColor: "#d4af37",
+                              color: "white",
+                              fontSize: "10px",
+                            }}
+                          >
+                            EDITOR
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td data-label="Status">
+                      <span
+                        className={`status-badge ${
+                          user.isVerified ? "verified" : "pending"
+                        }`}
+                      >
+                        {user.isVerified ? "Verified" : "Pending"}
+                      </span>
+                    </td>
+                    <td data-label="Action">
+                      {/* ✅ ONLY SHOW ACTIONS IF USER HAS PERMISSION */}
+                      {canEdit ? (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "5px",
+                          }}
+                        >
+                          {!user.isVerified && (
+                            <button
+                              onClick={() =>
+                                approveUser(user._id, user.fullName)
+                              }
+                              className="approve-btn"
+                              style={{ width: "100%" }}
+                            >
+                              VERIFY
+                            </button>
+                          )}
+
+                          {/* ✅ TOGGLE ADMIN BUTTON */}
                           <button
-                            onClick={() => toggleEditPermission(user._id)}
+                            onClick={() => toggleAdmin(user._id)}
                             className="approve-btn"
                             style={{
-                              backgroundColor: user.canEdit ? "#555" : "purple",
+                              backgroundColor: user.isAdmin
+                                ? "#444"
+                                : "#007bff",
                               fontSize: "10px",
                               width: "100%",
                             }}
                           >
-                            {user.canEdit ? "REVOKE EDIT" : "GRANT EDIT"}
+                            {user.isAdmin ? "REMOVE ADMIN" : "MAKE ADMIN"}
                           </button>
-                        )}
 
-                        <button
-                          onClick={() => deleteUserClick(user._id)}
-                          className="delete-btn"
-                          style={{ width: "100%" }}
-                        >
-                          DELETE
-                        </button>
-                      </div>
-                    ) : (
-                      <span style={{ color: "#999", fontSize: "12px" }}>
-                        View Only
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                          {/* Grant/Revoke Edit Rights (Only if Admin) */}
+                          {user.isAdmin && (
+                            <button
+                              onClick={() => toggleEditPermission(user._id)}
+                              className="approve-btn"
+                              style={{
+                                backgroundColor: user.canEdit
+                                  ? "#555"
+                                  : "purple",
+                                fontSize: "10px",
+                                width: "100%",
+                              }}
+                            >
+                              {user.canEdit ? "REVOKE EDIT" : "GRANT EDIT"}
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => deleteUserClick(user._id)}
+                            className="delete-btn"
+                            style={{ width: "100%" }}
+                          >
+                            DELETE
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={{ color: "#999", fontSize: "12px" }}>
+                          View Only
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -623,70 +632,73 @@ function AdminDashboard({ token, onLogout }) {
             <div className="empty-state">🔒 View-Only Mode enabled.</div>
           )}
 
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>Date</th>
-                <th>Title</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {eventsList.map((event) => (
-                <tr key={event._id}>
-                  <td data-label="Image">
-                    <img
-                      src={event.image || "https://via.placeholder.com/50"}
-                      alt="banner"
-                      style={{
-                        width: "50px",
-                        height: "30px",
-                        objectFit: "cover",
-                        borderRadius: "4px",
-                      }}
-                    />
-                  </td>
-                  <td
-                    data-label="Date"
-                    style={{ fontSize: "13px", color: "#555" }}
-                  >
-                    {new Date(event.date).toLocaleDateString()}
-                  </td>
-                  <td data-label="Title">
-                    <div style={{ fontWeight: "bold" }}>{event.title}</div>
-                    <span className="tag">{event.type}</span>
-                  </td>
-                  <td data-label="Action">
-                    {canEdit ? (
-                      <>
-                        <button
-                          onClick={() => startEditEvent(event)}
-                          className="approve-btn"
-                          style={{
-                            padding: "5px 10px",
-                            fontSize: "12px",
-                            marginRight: "5px",
-                            backgroundColor: "#3498db",
-                          }}
-                        >
-                          EDIT
-                        </button>
-                        <button
-                          className="delete-btn"
-                          onClick={() => deleteEventClick(event._id)}
-                        >
-                          DELETE
-                        </button>
-                      </>
-                    ) : (
-                      <span style={{ color: "#ccc" }}>🔒</span>
-                    )}
-                  </td>
+          {/* ✅ WRAPPED FOR SCROLLABLE TABLE */}
+          <div className="table-responsive">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Date</th>
+                  <th>Title</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {eventsList.map((event) => (
+                  <tr key={event._id}>
+                    <td data-label="Image">
+                      <img
+                        src={event.image || "https://via.placeholder.com/50"}
+                        alt="banner"
+                        style={{
+                          width: "50px",
+                          height: "30px",
+                          objectFit: "cover",
+                          borderRadius: "4px",
+                        }}
+                      />
+                    </td>
+                    <td
+                      data-label="Date"
+                      style={{ fontSize: "13px", color: "#555" }}
+                    >
+                      {new Date(event.date).toLocaleDateString()}
+                    </td>
+                    <td data-label="Title">
+                      <div style={{ fontWeight: "bold" }}>{event.title}</div>
+                      <span className="tag">{event.type}</span>
+                    </td>
+                    <td data-label="Action">
+                      {canEdit ? (
+                        <>
+                          <button
+                            onClick={() => startEditEvent(event)}
+                            className="approve-btn"
+                            style={{
+                              padding: "5px 10px",
+                              fontSize: "12px",
+                              marginRight: "5px",
+                              backgroundColor: "#3498db",
+                            }}
+                          >
+                            EDIT
+                          </button>
+                          <button
+                            className="delete-btn"
+                            onClick={() => deleteEventClick(event._id)}
+                          >
+                            DELETE
+                          </button>
+                        </>
+                      ) : (
+                        <span style={{ color: "#ccc" }}>🔒</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -759,53 +771,56 @@ function AdminDashboard({ token, onLogout }) {
             <div className="empty-state">🔒 View-Only Mode enabled.</div>
           )}
 
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Code</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {programmesList.map((prog) => (
-                <tr key={prog._id}>
-                  <td data-label="Title">
-                    <strong>{prog.title}</strong>
-                  </td>
-                  <td data-label="Code">{prog.code || "-"}</td>
-                  <td data-label="Action">
-                    {canEdit ? (
-                      <>
-                        {/* ✅ EDIT BUTTON FOR PROGRAMMES */}
-                        <button
-                          onClick={() => startEditProgramme(prog)}
-                          className="approve-btn"
-                          style={{
-                            padding: "5px 10px",
-                            fontSize: "12px",
-                            marginRight: "5px",
-                            backgroundColor: "#3498db",
-                          }}
-                        >
-                          EDIT
-                        </button>
-
-                        <button
-                          className="delete-btn"
-                          onClick={() => deleteProgrammeClick(prog._id)}
-                        >
-                          REMOVE
-                        </button>
-                      </>
-                    ) : (
-                      <span style={{ color: "#ccc" }}>🔒</span>
-                    )}
-                  </td>
+          {/* ✅ WRAPPED FOR SCROLLABLE TABLE */}
+          <div className="table-responsive">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Code</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {programmesList.map((prog) => (
+                  <tr key={prog._id}>
+                    <td data-label="Title">
+                      <strong>{prog.title}</strong>
+                    </td>
+                    <td data-label="Code">{prog.code || "-"}</td>
+                    <td data-label="Action">
+                      {canEdit ? (
+                        <>
+                          {/* ✅ EDIT BUTTON FOR PROGRAMMES */}
+                          <button
+                            onClick={() => startEditProgramme(prog)}
+                            className="approve-btn"
+                            style={{
+                              padding: "5px 10px",
+                              fontSize: "12px",
+                              marginRight: "5px",
+                              backgroundColor: "#3498db",
+                            }}
+                          >
+                            EDIT
+                          </button>
+
+                          <button
+                            className="delete-btn"
+                            onClick={() => deleteProgrammeClick(prog._id)}
+                          >
+                            REMOVE
+                          </button>
+                        </>
+                      ) : (
+                        <span style={{ color: "#ccc" }}>🔒</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
