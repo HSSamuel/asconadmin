@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-// CSS is now loaded globally from App.css
 
 export default function ResetPassword() {
   const [token, setToken] = useState("");
@@ -19,8 +18,10 @@ export default function ResetPassword() {
   const query = useQuery();
   const navigate = useNavigate();
 
+  // ✅ USE ENV VARIABLE
+  const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
   useEffect(() => {
-    // Extract token from URL (e.g., ?token=abc123...)
     const tokenParam = query.get("token");
     if (tokenParam) {
       setToken(tokenParam);
@@ -47,10 +48,8 @@ export default function ResetPassword() {
 
     setIsLoading(true);
     try {
-      // ⚠️ ENSURE THIS MATCHES YOUR LIVE BACKEND URL
-      const API_URL = "https://ascon.onrender.com/api/auth/reset-password";
-
-      await axios.post(API_URL, {
+      // ✅ Use Dynamic URL here
+      await axios.post(`${BASE_URL}/api/auth/reset-password`, {
         token: token,
         newPassword: newPassword,
       });
@@ -58,7 +57,6 @@ export default function ResetPassword() {
       setError(false);
       setMessage("Success! Redirecting to login...");
 
-      // Redirect after 2 seconds
       setTimeout(() => {
         navigate("/login");
       }, 2000);
