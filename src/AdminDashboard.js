@@ -92,16 +92,22 @@ function AdminDashboard({ token, onLogout }) {
     return instance;
   }, [token, onLogout]);
 
-  // --- 3. FETCH DATA (With Pagination) ---
+  // --- FETCH DATA ---
   const fetchData = useCallback(async () => {
     try {
       if (activeTab === "users") {
-        // ✅ Send Page Number to Backend
         const res = await API.get(`/admin/users?page=${page}&limit=20`);
 
-        // Handle new response format: { users: [...], pages: 5, ... }
-        setUsersList(res.data.users);
-        setTotalPages(res.data.pages);
+        // ✅ SAFETY FIX: Check what format the backend sent
+        if (Array.isArray(res.data)) {
+          // OLD FORMAT (Just an array)
+          setUsersList(res.data);
+          setTotalPages(1);
+        } else {
+          // NEW FORMAT (Object with pagination)
+          setUsersList(res.data.users || []); // Default to [] if missing
+          setTotalPages(res.data.pages || 1);
+        }
       } else if (activeTab === "events") {
         const res = await API.get("/events");
         setEventsList(res.data.events || res.data);

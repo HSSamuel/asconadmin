@@ -1,7 +1,7 @@
 import React from "react";
 
 function UsersTab({
-  usersList,
+  usersList = [],
   canEdit,
   approveUser,
   toggleAdmin,
