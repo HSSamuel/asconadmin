@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+// 👇 IMPORT LOGO HERE (Adjust path if your logo is elsewhere)
+import logo from "../assets/logo.png";
 
 export default function ResetPassword() {
   const [token, setToken] = useState("");
@@ -71,6 +73,15 @@ export default function ResetPassword() {
   return (
     <div className="reset-container">
       <div className="reset-card">
+        {/* ✅ LOGO ADDED HERE */}
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <img
+            src={logo}
+            alt="ASCON Logo"
+            style={{ width: "100px", height: "auto" }} // Adjust width as needed
+          />
+        </div>
+
         <h2 className="reset-title">Reset Password</h2>
         <p className="reset-subtitle">Enter your new password below.</p>
 
