@@ -1,10 +1,33 @@
 /* =========================================
    1. GLOBAL CONTAINER & LAYOUT
    ========================================= */
+/* Light Mode Variables (Default) */
+:root {
+  --bg-color: #f4f4f4;
+  --card-bg: #ffffff;
+  --text-main: #333333;
+  --text-muted: #666666;
+  --border-color: #eeeeee;
+  --table-header: #1b5e3a;
+  --input-bg: #ffffff;
+  --nav-bg: #ffffff;
+}
+
+[data-theme='dark'] {
+  --bg-color: #121212;      /* Deep black background */
+  --card-bg: #1e1e1e;      /* Dark grey for cards/tables */
+  --text-main: #e0e0e0;    /* Off-white text */
+  --text-muted: #b0b0b0;   /* Muted grey text */
+  --border-color: #333333; /* Darker borders */
+  --table-header: #0e331f; /* Darker ASCON Green */
+  --input-bg: #2d2d2d;
+  --nav-bg: #1e1e1e;
+}
+
 body {
-  background-color: #f4f4f4;
-  margin: 0;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color); /* Updated from #f4f4f4 */
+  color: var(--text-primary);
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .admin-container {
@@ -136,11 +159,12 @@ label {
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: white;
+background-color: var(--card-bg);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   margin-top: 10px;
+  
 }
 
 .admin-table thead {
@@ -734,3 +758,10 @@ label {
 .skeleton-line { height: 12px; margin-bottom: 4px; }
 .skeleton-box { height: 16px; }
 .skeleton-circle { width: 40px; height: 40px; border-radius: 50%; }
+
+[data-theme='dark'] .skeleton-box, 
+[data-theme='dark'] .skeleton-line, 
+[data-theme='dark'] .skeleton-circle {
+  background: #2a2a2a;
+  background-image: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+}
