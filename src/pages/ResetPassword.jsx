@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom"; // ✅ Removed useNavigate (No redirect needed)
 import axios from "axios";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // ✅ Import Icons
+import { FaEye, FaEyeSlash, FaCheckCircle } from "react-icons/fa"; // ✅ Added Check Icon
 import logo from "../assets/logo.png";
+import { Link } from "react-router-dom";
 
 export default function ResetPassword() {
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // ✅ Visibility States
+  // Visibility States
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -17,15 +18,16 @@ export default function ResetPassword() {
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Hook to get the URL parameters
+  // ✅ NEW: Track if reset is finished to show the final success view
+  const [isSuccess, setIsSuccess] = useState(false);
+
   const useQuery = () => {
     return new URLSearchParams(useLocation().search);
   };
 
   const query = useQuery();
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // ❌ Removed: We don't want to send them to Admin Login
 
-  // ✅ USE ENV VARIABLE
   const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
   useEffect(() => {
@@ -60,12 +62,12 @@ export default function ResetPassword() {
         newPassword: newPassword,
       });
 
-      setError(false);
-      setMessage("Success! Redirecting to login...");
+      // ✅ Clear any admin sessions just in case
+      localStorage.clear();
+      sessionStorage.clear();
 
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      // ✅ Show Success State instead of redirecting
+      setIsSuccess(true);
     } catch (err) {
       setError(true);
       setMessage(err.response?.data?.message || "Something went wrong.");
@@ -74,10 +76,56 @@ export default function ResetPassword() {
     }
   };
 
+  // ✅ RENDER: SUCCESS VIEW (Works for BOTH Admin & App Users)
+  if (isSuccess) {
+    return (
+      <div className="reset-container">
+        <div
+          className="reset-card"
+          style={{ textAlign: "center", padding: "40px 20px" }}
+        >
+          <FaCheckCircle
+            size={60}
+            color="#1B5E3A"
+            style={{ marginBottom: "20px" }}
+          />
+
+          <h2 className="reset-title" style={{ color: "#1B5E3A" }}>
+            Success!
+          </h2>
+
+          <p
+            className="reset-subtitle"
+            style={{ fontSize: "16px", marginTop: "10px", color: "#555" }}
+          >
+            Your password has been reset successfully.
+          </p>
+
+          <div style={{ marginTop: "25px" }}>
+            {/* INSTRUCTION FOR APP USERS */}
+            <p
+              style={{ fontSize: "14px", color: "#666", marginBottom: "15px" }}
+            >
+              <strong>App Users:</strong> You can now close this window and log
+              in on your phone.
+            </p>
+
+            {/* BUTTON FOR ADMINS */}
+            <Link to="/login" style={{ textDecoration: "none" }}>
+              <button className="reset-button" style={{ marginTop: "10px" }}>
+                Return to Admin Login
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ RENDER: FORM VIEW (Normal Reset Form)
   return (
     <div className="reset-container">
       <div className="reset-card">
-        {/* ✅ LOGO */}
         <div style={{ textAlign: "center", marginBottom: "20px" }}>
           <img
             src={logo}
@@ -89,7 +137,7 @@ export default function ResetPassword() {
         <h2 className="reset-title">Reset Password</h2>
         <p className="reset-subtitle">Enter your new password below.</p>
 
-        {message && (
+        {message && !isSuccess && (
           <div
             className={error ? "reset-error-banner" : "reset-success-banner"}
           >
@@ -98,10 +146,11 @@ export default function ResetPassword() {
         )}
 
         {!token ? (
-          <p style={{ color: "red" }}>Error: No token found in URL.</p>
+          <p style={{ color: "red", textAlign: "center" }}>
+            Error: Invalid Link.
+          </p>
         ) : (
           <form onSubmit={handleSubmit} className="reset-form">
-            {/* ✅ New Password Input with Eye Icon */}
             <div className="password-wrapper">
               <input
                 type={showNewPassword ? "text" : "password"}
@@ -119,7 +168,6 @@ export default function ResetPassword() {
               </span>
             </div>
 
-            {/* ✅ Confirm Password Input with Eye Icon */}
             <div className="password-wrapper">
               <input
                 type={showConfirmPassword ? "text" : "password"}
