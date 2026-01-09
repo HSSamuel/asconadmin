@@ -1,13 +1,18 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-// 👇 IMPORT LOGO HERE (Adjust path if your logo is elsewhere)
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // ✅ Import Icons
 import logo from "../assets/logo.png";
 
 export default function ResetPassword() {
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  // ✅ Visibility States
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +55,6 @@ export default function ResetPassword() {
 
     setIsLoading(true);
     try {
-      // ✅ Use Dynamic URL here
       await axios.post(`${BASE_URL}/api/auth/reset-password`, {
         token: token,
         newPassword: newPassword,
@@ -73,12 +77,12 @@ export default function ResetPassword() {
   return (
     <div className="reset-container">
       <div className="reset-card">
-        {/* ✅ LOGO ADDED HERE */}
+        {/* ✅ LOGO */}
         <div style={{ textAlign: "center", marginBottom: "20px" }}>
           <img
             src={logo}
             alt="ASCON Logo"
-            style={{ width: "100px", height: "auto" }} // Adjust width as needed
+            style={{ width: "100px", height: "auto" }}
           />
         </div>
 
@@ -97,22 +101,42 @@ export default function ResetPassword() {
           <p style={{ color: "red" }}>Error: No token found in URL.</p>
         ) : (
           <form onSubmit={handleSubmit} className="reset-form">
-            <input
-              type="password"
-              placeholder="New Password"
-              className="reset-input"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Confirm Password"
-              className="reset-input"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
+            {/* ✅ New Password Input with Eye Icon */}
+            <div className="password-wrapper">
+              <input
+                type={showNewPassword ? "text" : "password"}
+                placeholder="New Password"
+                className="reset-input"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+              <span
+                className="password-toggle-btn"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+              >
+                {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
+
+            {/* ✅ Confirm Password Input with Eye Icon */}
+            <div className="password-wrapper">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+                className="reset-input"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+              <span
+                className="password-toggle-btn"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
+
             <button type="submit" className="reset-button" disabled={isLoading}>
               {isLoading ? "Updating..." : "Update Password"}
             </button>
