@@ -76,7 +76,7 @@ export default function ResetPassword() {
     }
   };
 
-  // ✅ RENDER: SUCCESS VIEW (Works for BOTH Admin & App Users)
+  // ✅ RENDER: SUCCESS VIEW
   if (isSuccess) {
     return (
       <div className="reset-container">
@@ -102,18 +102,9 @@ export default function ResetPassword() {
           </p>
 
           <div style={{ marginTop: "25px" }}>
-            {/* INSTRUCTION FOR APP USERS */}
-            <p
-              style={{ fontSize: "14px", color: "#666", marginBottom: "15px" }}
-            >
-              <strong>App Users:</strong> You can now close this window and log
-              in on your phone.
-            </p>
-
-            {/* BUTTON FOR ADMINS */}
             <Link to="/login" style={{ textDecoration: "none" }}>
               <button className="reset-button" style={{ marginTop: "10px" }}>
-                Return to Admin Login
+                You can Login!
               </button>
             </Link>
           </div>
