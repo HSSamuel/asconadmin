@@ -28,6 +28,8 @@ function EventsTab({
                 }
                 required
               />
+
+              {/* ✅ UPDATED DROPDOWN: Professional Terms */}
               <select
                 value={eventForm.type}
                 onChange={(e) =>
@@ -35,12 +37,19 @@ function EventsTab({
                 }
               >
                 <option value="News">News</option>
-                <option value="Event">Event</option>
                 <option value="Reunion">Reunion</option>
                 <option value="Webinar">Webinar</option>
-              </select>
 
-              {/* ❌ REMOVED: Location Input used to be here */}
+                {/* Professional / Admin Terms */}
+                <option value="Conference">Conference</option>
+                <option value="Workshop">Workshop</option>
+                <option value="Symposium">Symposium</option>
+                <option value="AGM">AGM (General Assembly)</option>
+                <option value="Induction">Induction</option>
+
+                {/* Keep 'Event' hidden or at the bottom for backward compatibility if needed */}
+                <option value="Event">General Event</option>
+              </select>
 
               <input
                 type="text"
@@ -86,7 +95,6 @@ function EventsTab({
               <th>Date</th>
               <th>Type</th>
               <th>Title</th>
-              {/* ❌ REMOVED: Location Header */}
               <th>Actions</th>
             </tr>
           </thead>
@@ -95,12 +103,16 @@ function EventsTab({
               <tr key={evt._id}>
                 <td>{new Date(evt.date).toLocaleDateString()}</td>
                 <td>
-                  <span className={`tag ${evt.type.toLowerCase()}`}>
+                  {/* Dynamic coloring for new tags */}
+                  <span
+                    className={`tag ${evt.type
+                      .toLowerCase()
+                      .replace(/\s/g, "-")}`}
+                  >
                     {evt.type}
                   </span>
                 </td>
                 <td>{evt.title}</td>
-                {/* ❌ REMOVED: Location Cell */}
                 <td>
                   {canEdit && (
                     <div className="action-buttons-container">
