@@ -15,7 +15,6 @@ function EventsManager({ token, canEdit }) {
   const [eventForm, setEventForm] = useState({
     title: "",
     description: "",
-    // ❌ REMOVED: location
     type: "News",
     image: "",
   });
@@ -26,14 +25,14 @@ function EventsManager({ token, canEdit }) {
 
   const resetForm = () => {
     setEditingId(null);
-    // ❌ REMOVED: location
     setEventForm({ title: "", description: "", type: "News", image: "" });
   };
 
-  // 🧹 HELPER: Sanitizes data to remove system fields that cause API errors
+  // 🧹 HELPER: Sanitizes data to remove system fields AND 'location'
   const sanitizePayload = (data) => {
-    // Destructure to separate system fields from the rest
-    const { _id, id, createdAt, updatedAt, __v, ...cleanData } = data;
+    // Destructure to separate system fields + location from the rest
+    // We explicitly remove 'location' here so the backend doesn't complain
+    const { _id, id, createdAt, updatedAt, __v, location, ...cleanData } = data;
     return cleanData;
   };
 
@@ -43,13 +42,13 @@ function EventsManager({ token, canEdit }) {
       return showToast("Title must be at least 5 chars", "error");
 
     try {
-      // ✅ SANITIZE: Remove _id and system fields before sending
+      // ✅ SANITIZE: Remove _id, location, and system fields before sending
       const cleanData = sanitizePayload(eventForm);
 
       if (editingId) {
         await axios.put(
           `${BASE_URL}/api/admin/events/${editingId}`,
-          cleanData, // Send cleaned data
+          cleanData, // Send cleaned data (no location)
           {
             headers: { "auth-token": token },
           }
@@ -58,7 +57,7 @@ function EventsManager({ token, canEdit }) {
       } else {
         await axios.post(
           `${BASE_URL}/api/admin/events`,
-          { ...cleanData, date: new Date() }, // Send cleaned data + new date
+          { ...cleanData, date: new Date() },
           {
             headers: { "auth-token": token },
           }
@@ -68,7 +67,7 @@ function EventsManager({ token, canEdit }) {
       resetForm();
       events.refresh();
     } catch (err) {
-      console.error(err); // Log error for debugging
+      console.error(err);
       showToast(err.response?.data?.message || "Error saving event", "error");
     }
   };
@@ -113,12 +112,11 @@ function EventsManager({ token, canEdit }) {
         handleEventSubmit={handleEventSubmit}
         startEditEvent={(evt) => {
           setEditingId(evt._id);
-          // Ensure we copy the existing data into the form state
+          // Even if 'evt' has a location field from old DB data, we copy it here...
+          // BUT sanitizePayload() will strip it out before we save.
           setEventForm({
             ...evt,
             image: evt.image || "",
-            // If the event object from DB has extra fields, they get copied here,
-            // which is why sanitizePayload is crucial on submit.
           });
           window.scrollTo(0, 0);
         }}
