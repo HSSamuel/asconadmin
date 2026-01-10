@@ -6,49 +6,48 @@ export function useStats(baseUrl, token, refreshTrigger) {
     users: 0,
     events: 0,
     programmes: 0,
-    jobs: 0, // ✅ Initialize jobs count
     totalRegistrations: 0,
+    jobs: 0, // ✅ Initialize jobs count
   });
 
   useEffect(() => {
     if (!token) return;
 
-    const fetchStats = async () => {
+    const fetchAllStats = async () => {
       try {
         const config = { headers: { "auth-token": token } };
 
-        // Run all fetch requests in parallel
-        const [usersRes, eventsRes, progsRes, jobsRes, regsRes] =
-          await Promise.all([
-            axios.get(`${baseUrl}/api/admin/users`, config),
-            axios.get(`${baseUrl}/api/events`, config),
-            axios.get(`${baseUrl}/api/admin/programmes`, config),
-            axios.get(`${baseUrl}/api/jobs`, config), // ✅ Fetch Jobs
-            axios.get(`${baseUrl}/api/admin/registrations`, config),
-          ]);
+        // ✅ Run both fetches in parallel
+        // 1. Get legacy stats (Users, Events, etc.)
+        // 2. Get Jobs count directly from the jobs route
+        const [adminStatsRes, jobsRes] = await Promise.all([
+          axios.get(`${baseUrl}/api/admin/stats`, config),
+          axios.get(`${baseUrl}/api/jobs`, config),
+        ]);
 
-        // Helper to safely get array length regardless of response format
-        const getCount = (res) => {
-          if (Array.isArray(res.data)) return res.data.length;
-          if (res.data.data && Array.isArray(res.data.data))
-            return res.data.data.length;
-          if (res.data.count) return res.data.count;
-          return 0;
-        };
+        // ✅ Calculate Job Count safely (handles Array or Object response)
+        let jobsCount = 0;
+        const jobsData = jobsRes.data;
 
+        if (Array.isArray(jobsData)) {
+          jobsCount = jobsData.length;
+        } else if (jobsData.data && Array.isArray(jobsData.data)) {
+          jobsCount = jobsData.data.length; // Handles { success: true, data: [...] }
+        } else if (jobsData.count) {
+          jobsCount = jobsData.count;
+        }
+
+        // ✅ Merge them into state
         setStats({
-          users: getCount(usersRes),
-          events: getCount(eventsRes),
-          programmes: getCount(progsRes),
-          jobs: getCount(jobsRes), // ✅ Store Jobs Count
-          totalRegistrations: getCount(regsRes),
+          ...adminStatsRes.data, // Keep existing structure (users, events, etc.)
+          jobs: jobsCount, // Add the new number
         });
-      } catch (err) {
-        console.error("Error fetching stats:", err);
+      } catch (e) {
+        console.error("Stats error:", e);
       }
     };
 
-    fetchStats();
+    fetchAllStats();
   }, [baseUrl, token, refreshTrigger]);
 
   return stats;
