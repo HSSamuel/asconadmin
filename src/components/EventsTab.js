@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React from "react"; // ✅ FIXED: Removed unused useEffect, useRef
 
 function EventsTab({
   eventsList,
