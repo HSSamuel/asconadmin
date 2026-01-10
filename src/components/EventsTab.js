@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 function EventsTab({
   eventsList,
@@ -11,6 +11,12 @@ function EventsTab({
   cancelEditEvent,
   deleteEventClick,
 }) {
+  // ✅ SMART RESIZE: Automatically grows the box as you type
+  const handleAutoResize = (e) => {
+    e.target.style.height = "auto"; // Reset height to recalculate
+    e.target.style.height = `${e.target.scrollHeight}px`; // Set to content height
+  };
+
   return (
     <div>
       {/* FORM SECTION */}
@@ -29,7 +35,6 @@ function EventsTab({
                 required
               />
 
-              {/* ✅ UPDATED DROPDOWN: Professional Terms */}
               <select
                 value={eventForm.type}
                 onChange={(e) =>
@@ -39,15 +44,11 @@ function EventsTab({
                 <option value="News">News</option>
                 <option value="Reunion">Reunion</option>
                 <option value="Webinar">Webinar</option>
-
-                {/* Professional / Admin Terms */}
                 <option value="Conference">Conference</option>
                 <option value="Workshop">Workshop</option>
                 <option value="Symposium">Symposium</option>
                 <option value="AGM">AGM (General Assembly)</option>
                 <option value="Induction">Induction</option>
-
-                {/* Keep 'Event' hidden or at the bottom for backward compatibility if needed */}
                 <option value="Event">General Event</option>
               </select>
 
@@ -60,15 +61,25 @@ function EventsTab({
                 }
               />
             </div>
+
+            {/* ✅ UPDATED TEXTAREA: Auto-Expanding */}
             <textarea
-              placeholder="Description..."
+              placeholder="Description (Type to expand)..."
               rows="3"
               value={eventForm.description}
-              onChange={(e) =>
-                setEventForm({ ...eventForm, description: e.target.value })
-              }
+              onInput={handleAutoResize} // Trigger resize on typing
+              onChange={(e) => {
+                handleAutoResize(e); // Ensure it resizes on paste/change
+                setEventForm({ ...eventForm, description: e.target.value });
+              }}
+              style={{
+                minHeight: "80px",
+                resize: "vertical", // Keep manual resize for desktop
+                overflow: "hidden", // Hide scrollbar for cleaner look
+              }}
               required
             ></textarea>
+
             <div className="form-actions">
               <button type="submit" className="approve-btn">
                 {editingId ? "Update" : "Publish"}
@@ -103,7 +114,6 @@ function EventsTab({
               <tr key={evt._id}>
                 <td>{new Date(evt.date).toLocaleDateString()}</td>
                 <td>
-                  {/* Dynamic coloring for new tags */}
                   <span
                     className={`tag ${evt.type
                       .toLowerCase()
