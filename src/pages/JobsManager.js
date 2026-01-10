@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import JobsTab from "../components/JobsTab";
 import ConfirmModal from "../ConfirmModal";
@@ -22,7 +22,13 @@ function JobsManager({ token, canEdit }) {
     description: "",
   });
 
-  const jobs = usePaginatedFetch(`${BASE_URL}/api/jobs`, token); // Reusing your fetch hook
+  // Fetch Jobs
+  const jobs = usePaginatedFetch(`${BASE_URL}/api/jobs`, token);
+
+  // Debugging: Check if data is arriving
+  useEffect(() => {
+    console.log("Jobs Data:", jobs.data);
+  }, [jobs.data]);
 
   const showToast = (message, type = "success") => setToast({ message, type });
 
@@ -54,7 +60,7 @@ function JobsManager({ token, canEdit }) {
         showToast("Job posted successfully");
       }
       resetForm();
-      jobs.refresh();
+      jobs.refresh(); // Refresh list immediately
     } catch (err) {
       showToast("Error saving job", "error");
     }
@@ -91,7 +97,8 @@ function JobsManager({ token, canEdit }) {
       />
 
       <JobsTab
-        jobsList={jobs.data}
+        // ✅ FIX: Default to empty array if data is loading/null
+        jobsList={jobs.data || []}
         canEdit={canEdit}
         editingId={editingId}
         jobForm={jobForm}
