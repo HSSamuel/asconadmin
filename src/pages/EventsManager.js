@@ -30,16 +30,26 @@ function EventsManager({ token, canEdit }) {
     setEventForm({ title: "", description: "", type: "News", image: "" });
   };
 
+  // 🧹 HELPER: Sanitizes data to remove system fields that cause API errors
+  const sanitizePayload = (data) => {
+    // Destructure to separate system fields from the rest
+    const { _id, id, createdAt, updatedAt, __v, ...cleanData } = data;
+    return cleanData;
+  };
+
   const handleEventSubmit = async (e) => {
     e.preventDefault();
     if (eventForm.title.length < 5)
       return showToast("Title must be at least 5 chars", "error");
 
     try {
+      // ✅ SANITIZE: Remove _id and system fields before sending
+      const cleanData = sanitizePayload(eventForm);
+
       if (editingId) {
         await axios.put(
           `${BASE_URL}/api/admin/events/${editingId}`,
-          eventForm,
+          cleanData, // Send cleaned data
           {
             headers: { "auth-token": token },
           }
@@ -48,7 +58,7 @@ function EventsManager({ token, canEdit }) {
       } else {
         await axios.post(
           `${BASE_URL}/api/admin/events`,
-          { ...eventForm, date: new Date() },
+          { ...cleanData, date: new Date() }, // Send cleaned data + new date
           {
             headers: { "auth-token": token },
           }
@@ -58,6 +68,7 @@ function EventsManager({ token, canEdit }) {
       resetForm();
       events.refresh();
     } catch (err) {
+      console.error(err); // Log error for debugging
       showToast(err.response?.data?.message || "Error saving event", "error");
     }
   };
@@ -102,7 +113,13 @@ function EventsManager({ token, canEdit }) {
         handleEventSubmit={handleEventSubmit}
         startEditEvent={(evt) => {
           setEditingId(evt._id);
-          setEventForm({ ...evt, image: evt.image || "" });
+          // Ensure we copy the existing data into the form state
+          setEventForm({
+            ...evt,
+            image: evt.image || "",
+            // If the event object from DB has extra fields, they get copied here,
+            // which is why sanitizePayload is crucial on submit.
+          });
           window.scrollTo(0, 0);
         }}
         cancelEditEvent={resetForm}
