@@ -9,7 +9,7 @@ import EventsManager from "./pages/EventsManager";
 import ProgrammesManager from "./pages/ProgrammesManager";
 import RegistrationsManager from "./pages/RegistrationsManager";
 import JobsManager from "./pages/JobsManager";
-import FacilitiesTab from "./components/FacilitiesTab"; // 👈 Facilities Component
+import FacilitiesTab from "./components/FacilitiesTab";
 
 import { useAuth } from "./hooks/useAuth";
 import { useStats } from "./hooks/useStats";
@@ -20,9 +20,12 @@ function AdminDashboard({ token, onLogout }) {
   const [activeTab, setActiveTab] = useState("users");
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
-  // ✅ 1. GLOBAL LOGIC (Auth & Stats only)
+  // ✅ 1. CREATE A REFRESH TRIGGER
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // ✅ 2. PASS TRIGGER TO useStats (This forces stats to re-fetch when trigger changes)
   const { canEdit, userRole } = useAuth(token, onLogout);
-  const stats = useStats(BASE_URL, token, 0);
+  const stats = useStats(BASE_URL, token, refreshTrigger);
 
   useEffect(() => {
     document.body.setAttribute("data-theme", theme);
@@ -32,6 +35,11 @@ function AdminDashboard({ token, onLogout }) {
     const newTheme = theme === "light" ? "dark" : "light";
     localStorage.setItem("theme", newTheme);
     setTheme(newTheme);
+  };
+
+  // ✅ 3. HELPER FUNCTION TO UPDATE STATS
+  const refreshStats = () => {
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   return (
@@ -77,7 +85,6 @@ function AdminDashboard({ token, onLogout }) {
           onClick={() => setActiveTab("programmes")}
         />
 
-        {/* ✅ JOBS STAT CARD */}
         <StatCard
           title="Jobs/Careers"
           value={stats.jobs || 0}
@@ -86,12 +93,12 @@ function AdminDashboard({ token, onLogout }) {
           onClick={() => setActiveTab("jobs")}
         />
 
-        {/* ✅ FACILITIES STAT CARD (ADDED HERE) */}
+        {/* FACILITIES STAT CARD */}
         <StatCard
           title="Facilities"
           value={stats.facilities || 0}
           icon="🏢"
-          color="#ffe5d0" // Distinct Orange/Peach Color
+          color="#ffe5d0"
           onClick={() => setActiveTab("facilities")}
         />
 
@@ -108,7 +115,6 @@ function AdminDashboard({ token, onLogout }) {
         className="content-padding"
         style={{ marginTop: "30px", paddingBottom: "20px" }}
       >
-        {/* ✅ RENDER MANAGERS */}
         {activeTab === "users" && (
           <UsersManager token={token} canEdit={canEdit} />
         )}
@@ -125,8 +131,10 @@ function AdminDashboard({ token, onLogout }) {
           <JobsManager token={token} canEdit={canEdit} />
         )}
 
-        {/* ✅ FACILITIES RENDER LOGIC */}
-        {activeTab === "facilities" && <FacilitiesTab />}
+        {/* ✅ 4. PASS THE REFRESH FUNCTION TO FACILITIES TAB */}
+        {activeTab === "facilities" && (
+          <FacilitiesTab onRefreshStats={refreshStats} />
+        )}
 
         {activeTab === "registrations" && (
           <RegistrationsManager token={token} canEdit={canEdit} />

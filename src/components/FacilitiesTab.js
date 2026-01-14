@@ -4,13 +4,14 @@ import "./StatCard.css";
 import Toast from "../Toast";
 import ConfirmModal from "../ConfirmModal";
 
-function FacilitiesTab() {
+// ✅ 1. ACCEPT THE PROP HERE
+function FacilitiesTab({ onRefreshStats }) {
   const [facilities, setFacilities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // ✅ UI STATE
+  // UI STATE
   const [toast, setToast] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ show: false, id: null });
 
@@ -26,7 +27,7 @@ function FacilitiesTab() {
     process.env.REACT_APP_API_URL || "https://ascon-connect-api.onrender.com";
   const token = localStorage.getItem("auth_token");
 
-  // ✅ FIX 1: Wrap function in useCallback to satisfy useEffect dependency warning
+  // Fetch Facilities
   const fetchFacilities = useCallback(async () => {
     try {
       const res = await axios.get(`${API_URL}/api/facilities`);
@@ -40,13 +41,14 @@ function FacilitiesTab() {
 
   useEffect(() => {
     fetchFacilities();
-  }, [fetchFacilities]); // ✅ Dependency added
+  }, [fetchFacilities]);
 
-  // Helper to show toasts
+  // Toast Helper
   const showToast = (message, type = "success") => {
     setToast({ message, type });
   };
 
+  // Form Handlers
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -66,6 +68,7 @@ function FacilitiesTab() {
     setRates(newRates);
   };
 
+  // Edit Mode
   const handleEdit = (facility) => {
     setEditingId(facility._id);
     setFormData({
@@ -78,12 +81,11 @@ function FacilitiesTab() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // ✅ Trigger Delete Modal
+  // Delete Logic
   const confirmDelete = (id) => {
     setDeleteModal({ show: true, id });
   };
 
-  // ✅ Actual Delete Logic
   const handleDelete = async () => {
     const id = deleteModal.id;
     setDeleteModal({ show: false, id: null });
@@ -94,16 +96,29 @@ function FacilitiesTab() {
       });
       showToast("Facility Deleted Successfully!", "success");
       fetchFacilities();
+
+      // ✅ 2. TRIGGER DASHBOARD REFRESH ON DELETE
+      if (onRefreshStats) onRefreshStats();
     } catch (err) {
       showToast("Failed to delete facility", "error");
     }
   };
 
+  // Reset Logic
   const resetForm = () => {
     setShowForm(false);
     setEditingId(null);
     setFormData({ name: "", image: "", description: "" });
     setRates([{ type: "", naira: "", dollar: "" }]);
+  };
+
+  // Top Button Handler
+  const toggleForm = () => {
+    if (showForm) {
+      resetForm();
+    } else {
+      setShowForm(true);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -132,6 +147,9 @@ function FacilitiesTab() {
 
       resetForm();
       fetchFacilities();
+
+      // ✅ 3. TRIGGER DASHBOARD REFRESH ON SAVE/UPDATE
+      if (onRefreshStats) onRefreshStats();
     } catch (err) {
       showToast(err.response?.data?.message || "Operation failed", "error");
     }
@@ -139,7 +157,7 @@ function FacilitiesTab() {
 
   return (
     <div className="tab-content">
-      {/* ✅ FIX 2: Render the components to fix 'defined but never used' warning */}
+      {/* Toast Notification */}
       {toast && (
         <Toast
           message={toast.message}
@@ -148,6 +166,7 @@ function FacilitiesTab() {
         />
       )}
 
+      {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={deleteModal.show}
         title="Delete Facility"
@@ -170,10 +189,7 @@ function FacilitiesTab() {
         <h2>Facility Rentals</h2>
         <button
           className="btn-primary"
-          onClick={() => {
-            if (showForm) resetForm();
-            else setShowForm(true);
-          }}
+          onClick={toggleForm}
           style={{
             padding: "10px 20px",
             background: showForm ? "#666" : "#1B5E3A",
@@ -294,19 +310,38 @@ function FacilitiesTab() {
             </button>
 
             <br />
-            <button
-              type="submit"
-              style={{
-                background: "#1B5E3A",
-                color: "white",
-                padding: "10px 20px",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
-              }}
-            >
-              {editingId ? "Update Facility" : "Save Facility"}
-            </button>
+
+            {/* BUTTON GROUP: SAVE + CANCEL */}
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                type="submit"
+                style={{
+                  background: "#1B5E3A",
+                  color: "white",
+                  padding: "10px 20px",
+                  border: "none",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                }}
+              >
+                {editingId ? "Update Facility" : "Save Facility"}
+              </button>
+
+              <button
+                type="button"
+                onClick={resetForm}
+                style={{
+                  background: "#ccc",
+                  color: "#333",
+                  padding: "10px 20px",
+                  border: "none",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           </form>
         </div>
       )}
