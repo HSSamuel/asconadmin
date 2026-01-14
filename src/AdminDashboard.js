@@ -8,7 +8,8 @@ import UsersManager from "./pages/UsersManager";
 import EventsManager from "./pages/EventsManager";
 import ProgrammesManager from "./pages/ProgrammesManager";
 import RegistrationsManager from "./pages/RegistrationsManager";
-import JobsManager from "./pages/JobsManager"; // ✅ 1. NEW IMPORT
+import JobsManager from "./pages/JobsManager";
+import FacilitiesTab from "./components/FacilitiesTab"; // 👈 Facilities Component
 
 import { useAuth } from "./hooks/useAuth";
 import { useStats } from "./hooks/useStats";
@@ -76,13 +77,22 @@ function AdminDashboard({ token, onLogout }) {
           onClick={() => setActiveTab("programmes")}
         />
 
-        {/* ✅ 2. NEW STAT CARD FOR JOBS */}
+        {/* ✅ JOBS STAT CARD */}
         <StatCard
           title="Jobs/Careers"
-          value={stats.jobs || 0} // Safe fallback if API doesn't return count yet
+          value={stats.jobs || 0}
           icon="💼"
           color={theme === "light" ? "#e2e3e5" : "#3a3a3a"}
           onClick={() => setActiveTab("jobs")}
+        />
+
+        {/* ✅ FACILITIES STAT CARD (ADDED HERE) */}
+        <StatCard
+          title="Facilities"
+          value={stats.facilities || 0}
+          icon="🏢"
+          color="#ffe5d0" // Distinct Orange/Peach Color
+          onClick={() => setActiveTab("facilities")}
         />
 
         <StatCard
@@ -111,10 +121,12 @@ function AdminDashboard({ token, onLogout }) {
           <ProgrammesManager token={token} canEdit={canEdit} />
         )}
 
-        {/* ✅ 3. NEW TAB LOGIC */}
         {activeTab === "jobs" && (
           <JobsManager token={token} canEdit={canEdit} />
         )}
+
+        {/* ✅ FACILITIES RENDER LOGIC */}
+        {activeTab === "facilities" && <FacilitiesTab />}
 
         {activeTab === "registrations" && (
           <RegistrationsManager token={token} canEdit={canEdit} />
