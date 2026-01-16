@@ -14,7 +14,7 @@ import Toast from "../Toast";
 import ConfirmModal from "../ConfirmModal";
 import SkeletonTable from "../components/SkeletonTable";
 
-const BASE_URL = process.env.REACT_APP_API_URL || "https://ascon.onrender.com";
+const BASE_URL = process.env.REACT_APP_API_URL || "https://ascon-st50.onrender.com";
 
 function JobsManager({ token, canEdit }) {
   const [jobs, setJobs] = useState([]);
