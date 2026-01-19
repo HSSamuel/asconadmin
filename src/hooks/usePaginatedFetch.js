@@ -1,52 +1,59 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
-export function usePaginatedFetch(url, token) {
+export function usePaginatedFetch(url, token, trigger = 0) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [search, setSearch] = useState(""); // ✅ Manages Search State
+  const [search, setSearch] = useState("");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // ✅ FIX: Ensure search is attached to URL
       const res = await axios.get(url, {
         headers: { "auth-token": token },
         params: {
           page,
           limit: 20,
-          search: search || "", // <--- CRITICAL
+          search: search || "",
         },
       });
 
-      // Handle different response structures
-      if (res.data.users) {
-        setData(res.data.users);
-        setTotalPages(res.data.pages);
-      } else if (res.data.data) {
-        setData(res.data.data);
-        setTotalPages(res.data.pages || 1);
+      // ✅ FIX: Smart Detection of Data Array
+      // The backend might return 'users', 'programmes', 'events', or 'data'
+      const responseBody = res.data;
+
+      if (Array.isArray(responseBody.users)) {
+        setData(responseBody.users);
+      } else if (Array.isArray(responseBody.programmes)) {
+        setData(responseBody.programmes); // <--- Now catches your Programmes!
+      } else if (Array.isArray(responseBody.events)) {
+        setData(responseBody.events);
+      } else if (Array.isArray(responseBody.data)) {
+        setData(responseBody.data);
       } else {
-        setData([]);
+        // Fallback: If the response itself is an array
+        setData(Array.isArray(responseBody) ? responseBody : []);
       }
+
+      setTotalPages(responseBody.pages || 1);
     } catch (err) {
       console.error("Fetch Error:", err);
+      setData([]);
     } finally {
       setLoading(false);
     }
-  }, [url, token, page, search]); // ✅ Depend on 'search'
+  }, [url, token, page, search]);
 
-  // ✅ Auto-Fetch when page or search changes
+  // ✅ FIX: Now listens to 'trigger' (refreshTrigger)
   useEffect(() => {
-    // Optional: Add debounce for search to prevent too many requests
     const timeoutId = setTimeout(() => {
       fetchData();
-    }, 500); // 500ms delay while typing
+    }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [fetchData]);
+  }, [fetchData, trigger]); // <--- Added trigger here
 
   return {
     data,
@@ -55,7 +62,7 @@ export function usePaginatedFetch(url, token) {
     setPage,
     totalPages,
     search,
-    setSearch, // ✅ Pass this back so UI can update it
+    setSearch,
     refresh: fetchData,
   };
 }
