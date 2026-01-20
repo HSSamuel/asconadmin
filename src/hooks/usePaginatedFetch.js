@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
-// ✅ 1. Added 'trigger' parameter to allow auto-refresh
 export function usePaginatedFetch(url, token, trigger = 0) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,9 +22,9 @@ export function usePaginatedFetch(url, token, trigger = 0) {
 
       const responseBody = res.data;
 
-      // ✅ 2. FIX: Check for 'programmes' and 'events' specifically
+      // ✅ FIX: Added logic to detect 'registrations' key
       if (responseBody.programmes) {
-        setData(responseBody.programmes); // <--- Finds your Programmes now!
+        setData(responseBody.programmes);
         setTotalPages(responseBody.pages);
       } else if (responseBody.users) {
         setData(responseBody.users);
@@ -33,8 +32,10 @@ export function usePaginatedFetch(url, token, trigger = 0) {
       } else if (responseBody.events) {
         setData(responseBody.events);
         setTotalPages(responseBody.pages);
+      } else if (responseBody.registrations) {
+        setData(responseBody.registrations); // <--- This fixes your Registration Table!
+        setTotalPages(responseBody.pages);
       } else if (responseBody.data) {
-        // Fallback for single items or generic data
         setData(Array.isArray(responseBody.data) ? responseBody.data : []);
         setTotalPages(responseBody.pages || 1);
       } else {
@@ -48,7 +49,7 @@ export function usePaginatedFetch(url, token, trigger = 0) {
     }
   }, [url, token, page, search]);
 
-  // ✅ 3. FIX: Add 'trigger' to dependency array so it refreshes on submit
+  // ✅ FIX: Added trigger so the table refreshes when you delete something
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchData();
