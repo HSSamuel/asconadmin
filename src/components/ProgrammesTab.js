@@ -56,10 +56,7 @@ function ProgrammesTab({
       {canEdit ? (
         <>
           {showForm && (
-            <div
-              className="form-card fade-in"
-              style={{ marginBottom: "30px" }}
-            >
+            <div className="form-card fade-in" style={{ marginBottom: "30px" }}>
               <div
                 style={{
                   display: "flex",
