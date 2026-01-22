@@ -19,7 +19,6 @@ function ProgrammesManager({ token, canEdit }) {
   const [editingId, setEditingId] = useState(null);
   const [progForm, setProgForm] = useState({
     title: "",
-    code: "",
     description: "",
     location: "ASCON Complex, Badagry",
     duration: "",
@@ -39,7 +38,6 @@ function ProgrammesManager({ token, canEdit }) {
     setEditingId(null);
     setProgForm({
       title: "",
-      code: "",
       description: "",
       location: "ASCON Complex, Badagry",
       duration: "",
