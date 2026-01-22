@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { FaTrash, FaEdit, FaTimes, FaLink } from "react-icons/fa"; // ✅ Added FaLink icon
+import { FaTrash, FaEdit, FaTimes, FaLink } from "react-icons/fa";
 import "./FacilitiesTab.css";
 import Toast from "../Toast";
 import ConfirmModal from "../ConfirmModal";
@@ -23,7 +23,7 @@ function FacilitiesTab({ onRefreshStats }) {
     name: "",
     image: "",
     description: "",
-    paymentUrl: "", // ✅ 1. ADDED STATE FIELD
+    paymentUrl: "",
   });
 
   const [rates, setRates] = useState([{ type: "", naira: "", dollar: "" }]);
@@ -80,7 +80,7 @@ function FacilitiesTab({ onRefreshStats }) {
       name: facility.name,
       image: facility.image,
       description: facility.description || "",
-      paymentUrl: facility.paymentUrl || "", // ✅ 2. LOAD EXISTING URL
+      paymentUrl: facility.paymentUrl || "",
     });
     setRates(facility.rates || []);
     setShowForm(true);
@@ -135,7 +135,7 @@ function FacilitiesTab({ onRefreshStats }) {
   const resetForm = () => {
     setShowForm(false);
     setEditingId(null);
-    setFormData({ name: "", image: "", description: "", paymentUrl: "" }); // ✅ 3. RESET FIELD
+    setFormData({ name: "", image: "", description: "", paymentUrl: "" });
     setRates([{ type: "", naira: "", dollar: "" }]);
   };
 
@@ -206,7 +206,7 @@ function FacilitiesTab({ onRefreshStats }) {
         isDanger={true}
         onConfirm={handleDelete}
         onCancel={() => setDeleteModal({ show: false, id: null })}
-        // ✅ Pass loading state
+        // ✅ Pass loading
         isLoading={isSubmitting}
       />
 
@@ -239,14 +239,13 @@ function FacilitiesTab({ onRefreshStats }) {
                 required
               />
 
-              {/* ✅ 4. NEW INPUT FIELD FOR PAYMENT URL */}
               <input
                 type="text"
                 name="paymentUrl"
                 placeholder="Payment/Booking URL (Optional)"
                 value={formData.paymentUrl}
                 onChange={handleInputChange}
-                style={{ gridColumn: "1 / -1" }} // Make it span full width
+                style={{ gridColumn: "1 / -1" }}
               />
 
               <textarea
@@ -312,7 +311,7 @@ function FacilitiesTab({ onRefreshStats }) {
             </div>
 
             <div className="form-actions">
-              {/* ✅ UPDATED BUTTON with Spinner */}
+              {/* ✅ SPINNER BUTTON */}
               <button
                 type="submit"
                 className="approve-btn"
@@ -328,7 +327,6 @@ function FacilitiesTab({ onRefreshStats }) {
                   "Save Facility"
                 )}
               </button>
-
               <button
                 type="button"
                 onClick={resetForm}
@@ -342,6 +340,7 @@ function FacilitiesTab({ onRefreshStats }) {
         </div>
       )}
 
+      {/* Table (Unchanged) */}
       <div className="table-responsive">
         <table className="admin-table">
           <thead>
@@ -366,7 +365,6 @@ function FacilitiesTab({ onRefreshStats }) {
                   </td>
                   <td className="font-bold">
                     {fac.name}
-                    {/* ✅ 5. VISUAL INDICATOR IF PAYMENT LINK EXISTS */}
                     {fac.paymentUrl && (
                       <FaLink
                         style={{

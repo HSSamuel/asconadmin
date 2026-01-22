@@ -9,7 +9,6 @@ import {
   FaEnvelope,
 } from "react-icons/fa";
 import "./JobsManager.css";
-// ✅ FIXED IMPORTS (Pointing to src/ instead of src/components/)
 import Toast from "../Toast";
 import ConfirmModal from "../ConfirmModal";
 import SkeletonTable from "../components/SkeletonTable";
@@ -23,7 +22,7 @@ function JobsManager({ token, canEdit }) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // ✅ 1. NEW STATE: Loading state for buttons
+  // ✅ 1. NEW STATE: Loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [toast, setToast] = useState(null);
@@ -158,7 +157,7 @@ function JobsManager({ token, canEdit }) {
         message="Are you sure you want to delete this job posting?"
         onClose={() => setDeleteModal({ show: false, id: null })}
         onConfirm={handleDelete}
-        // ✅ Pass loading state
+        // ✅ Pass loading
         isLoading={isSubmitting}
       />
 
@@ -243,7 +242,7 @@ function JobsManager({ token, canEdit }) {
               />
             </div>
             <div className="form-actions">
-              {/* ✅ LOADING BUTTON */}
+              {/* ✅ SPINNER BUTTON */}
               <button
                 type="submit"
                 className="save-btn"
@@ -273,6 +272,7 @@ function JobsManager({ token, canEdit }) {
         </div>
       )}
 
+      {/* Table (Unchanged) */}
       <div className="table-responsive">
         <table className="admin-table">
           <thead>
