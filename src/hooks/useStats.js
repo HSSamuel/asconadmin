@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import api from "../api"; // ✅ Import centralized API
-
-// ✅ Removed 'baseUrl' and 'token' arguments, they are handled by api.js
 export function useStats(refreshTrigger) {
   const [stats, setStats] = useState({
     users: 0,
