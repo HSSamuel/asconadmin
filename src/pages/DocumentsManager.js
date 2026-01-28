@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import api from "../api";
 import { useAuth } from "../hooks/useAuth";
 import SkeletonTable from "../components/SkeletonTable";
-import Toast from "../Toast"; // ✅ Use your local Toast component
+import Toast from "../Toast"; // ✅ Using your LOCAL Toast component
 
 const DocumentsManager = () => {
   const { token } = useAuth();
@@ -10,15 +10,13 @@ const DocumentsManager = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
 
-  // ✅ Toast State
+  // ✅ Local Toast State
   const [toast, setToast] = useState(null);
 
-  // Helper to show toast
   const showToast = (message, type = "success") => {
     setToast({ message, type });
   };
 
-  // ✅ Wrapped in useCallback to fix dependency warning
   const fetchDocs = useCallback(async () => {
     try {
       const data = await api.getDocuments(token);
@@ -41,12 +39,10 @@ const DocumentsManager = () => {
 
     setProcessingId(doc._id);
     try {
-      // Prompt for admin comment (optional)
       const comment = window.prompt(
         "Add a note for the user? (e.g., Tracking Number)",
         doc.adminComment || "",
       );
-
       const updatedDoc = await api.updateDocumentStatus(
         doc._id,
         newStatus,
@@ -54,7 +50,6 @@ const DocumentsManager = () => {
         token,
       );
 
-      // Update local state
       setDocs(docs.map((d) => (d._id === doc._id ? updatedDoc : d)));
       showToast(`Request updated to ${newStatus}`, "success");
     } catch (err) {
@@ -85,12 +80,10 @@ const DocumentsManager = () => {
 
   return (
     <div className="p-6 relative">
-      {" "}
-      {/* Added relative for toast positioning if needed */}
       <h1 className="text-2xl font-bold mb-6 text-gray-800">
         Document Requests
       </h1>
-      {/* ✅ Render Toast if active */}
+
       {toast && (
         <Toast
           message={toast.message}
@@ -98,10 +91,9 @@ const DocumentsManager = () => {
           onClose={() => setToast(null)}
         />
       )}
+
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
-          {" "}
-          {/* Added for horizontal scroll on small screens */}
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
