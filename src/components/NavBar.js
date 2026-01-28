@@ -1,14 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./NavBar.css";
 
-function NavBar({
-  activeTab,
-  setActiveTab,
-  onLogout,
-  userRole,
-  theme,
-  toggleTheme,
-}) {
+function NavBar({ activeTab, setActiveTab, onLogout, userRole }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false); // Mobile Menu
   const [isDesktopDropdownOpen, setIsDesktopDropdownOpen] = useState(false); // Desktop Dropdown
 
@@ -39,7 +32,7 @@ function NavBar({
     { id: "jobs", label: "Jobs", icon: "💼" },
     { id: "facilities", label: "Facilities", icon: "🏢" },
     { id: "registrations", label: "Registrations", icon: "📋" },
-    // ✅ ADDED DOCUMENTS TAB
+    // ✅ DOCUMENTS TAB IS HERE
     { id: "documents", label: "Documents", icon: "📄" },
   ];
 
@@ -96,15 +89,6 @@ function NavBar({
         </div>
 
         <div className="nav-actions">
-          {/* ✅ THEME TOGGLE BUTTON */}
-          <button
-            className="theme-btn"
-            onClick={toggleTheme}
-            title="Switch Theme"
-          >
-            {theme === "light" ? "🌙" : "☀️"}
-          </button>
-
           <button className="logout-btn" onClick={onLogout}>
             Logout ↪
           </button>
@@ -128,10 +112,6 @@ function NavBar({
               </button>
             ))}
             <hr />
-            {/* Mobile Theme Toggle */}
-            <button className="mobile-theme-toggle" onClick={toggleTheme}>
-              {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
-            </button>
             <button className="mobile-logout" onClick={onLogout}>
               🚪 Logout
             </button>
