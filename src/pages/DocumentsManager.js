@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "../api";
 import { useAuth } from "../hooks/useAuth";
 import SkeletonTable from "../components/SkeletonTable";
-import { toast } from "react-toastify"; // Assuming you have react-toastify or similar
+import Toast from "../Toast"; // ✅ Use your local Toast component
 
 const DocumentsManager = () => {
   const { token } = useAuth();
@@ -10,21 +10,30 @@ const DocumentsManager = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
 
-  useEffect(() => {
-    fetchDocs();
-  }, []);
+  // ✅ Toast State
+  const [toast, setToast] = useState(null);
 
-  const fetchDocs = async () => {
+  // Helper to show toast
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+  };
+
+  // ✅ Wrapped in useCallback to fix dependency warning
+  const fetchDocs = useCallback(async () => {
     try {
       const data = await api.getDocuments(token);
       setDocs(data);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to load requests");
+      showToast("Failed to load requests", "error");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchDocs();
+  }, [fetchDocs]);
 
   const handleStatusUpdate = async (doc, newStatus) => {
     if (!window.confirm(`Mark request as ${newStatus}? User will be notified.`))
@@ -47,9 +56,9 @@ const DocumentsManager = () => {
 
       // Update local state
       setDocs(docs.map((d) => (d._id === doc._id ? updatedDoc : d)));
-      toast.success(`Request updated to ${newStatus}`);
+      showToast(`Request updated to ${newStatus}`, "success");
     } catch (err) {
-      toast.error("Update failed");
+      showToast("Update failed", "error");
     } finally {
       setProcessingId(null);
     }
@@ -75,96 +84,111 @@ const DocumentsManager = () => {
   if (isLoading) return <SkeletonTable />;
 
   return (
-    <div className="p-6">
+    <div className="p-6 relative">
+      {" "}
+      {/* Added relative for toast positioning if needed */}
       <h1 className="text-2xl font-bold mb-6 text-gray-800">
         Document Requests
       </h1>
-
+      {/* ✅ Render Toast if active */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                User
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Type
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Details
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {docs.map((doc) => (
-              <tr key={doc._id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    {doc.user?.fullName || "Unknown"}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {doc.user?.alumniId}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{doc.type}</div>
-                  <div className="text-xs text-gray-500">
-                    {new Date(doc.createdAt).toLocaleDateString()}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div
-                    className="text-sm text-gray-900 max-w-xs truncate"
-                    title={doc.details}
-                  >
-                    {doc.details}
-                  </div>
-                  {doc.adminComment && (
-                    <div className="text-xs text-red-500 mt-1">
-                      Note: {doc.adminComment}
-                    </div>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {getStatusBadge(doc.status)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  {processingId === doc._id ? (
-                    <span className="text-gray-400">Updating...</span>
-                  ) : (
-                    <select
-                      className="border border-gray-300 rounded text-sm p-1"
-                      value={doc.status}
-                      onChange={(e) => handleStatusUpdate(doc, e.target.value)}
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="Processing">Processing</option>
-                      <option value="Ready">Ready</option>
-                      <option value="Delivered">Delivered</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {docs.length === 0 && (
+        <div className="overflow-x-auto">
+          {" "}
+          {/* Added for horizontal scroll on small screens */}
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <td
-                  colSpan="5"
-                  className="px-6 py-10 text-center text-gray-500"
-                >
-                  No document requests found.
-                </td>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  User
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Details
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {docs.map((doc) => (
+                <tr key={doc._id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {doc.user?.fullName || "Unknown"}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {doc.user?.alumniId}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{doc.type}</div>
+                    <div className="text-xs text-gray-500">
+                      {new Date(doc.createdAt).toLocaleDateString()}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div
+                      className="text-sm text-gray-900 max-w-xs truncate"
+                      title={doc.details}
+                    >
+                      {doc.details}
+                    </div>
+                    {doc.adminComment && (
+                      <div className="text-xs text-red-500 mt-1">
+                        Note: {doc.adminComment}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {getStatusBadge(doc.status)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    {processingId === doc._id ? (
+                      <span className="text-gray-400">Updating...</span>
+                    ) : (
+                      <select
+                        className="border border-gray-300 rounded text-sm p-1"
+                        value={doc.status}
+                        onChange={(e) =>
+                          handleStatusUpdate(doc, e.target.value)
+                        }
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Processing">Processing</option>
+                        <option value="Ready">Ready</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {docs.length === 0 && (
+                <tr>
+                  <td
+                    colSpan="5"
+                    className="px-6 py-10 text-center text-gray-500"
+                  >
+                    No document requests found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
