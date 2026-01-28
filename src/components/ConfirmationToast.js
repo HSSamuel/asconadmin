@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./Toast.css"; // We'll reuse/extend Toast styles
+import "../Toast.css";
 
 const ConfirmationToast = ({
   isOpen,
