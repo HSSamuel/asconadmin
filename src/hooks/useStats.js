@@ -15,7 +15,7 @@ export function useStats(refreshTrigger) {
       try {
         // ✅ Single call to the updated admin stats endpoint
         const response = await api.get("/api/admin/stats");
-        
+
         // The backend now returns { users, events, programmes, totalRegistrations, updates }
         setStats(response.data);
       } catch (e) {
