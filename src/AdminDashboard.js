@@ -10,7 +10,6 @@ import ProgrammesManager from "./pages/ProgrammesManager";
 import RegistrationsManager from "./pages/RegistrationsManager";
 import UpdatesManager from "./pages/UpdatesManager";
 import DocumentsManager from "./pages/DocumentsManager";
-// ❌ REMOVED: import FacilitiesTab from "./components/FacilitiesTab";
 
 import { useAuth } from "./hooks/useAuth";
 import { DashboardProvider, useDashboard } from "./context/DashboardContext";
