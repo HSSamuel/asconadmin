@@ -1,150 +1,186 @@
 import React, { useState } from "react";
-import api from "./api"; // ✅ Import centralized API
-import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
-import "./App.css";
-import logo from "./assets/logo.png";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext"; // ✅ Consumes the Context directly
+import "./Toast.css"; // Preserving your existing styles
 
-function Login({ onLogin }) {
+const Login = () => {
+  // 1. State Management
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  // --- STANDARD EMAIL LOGIN ---
-  const handleLogin = async (e) => {
+  // 2. Hooks
+  const { login } = useAuth(); // Get the login function from context
+  const navigate = useNavigate();
+
+  // 3. Form Submission Handler
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
+    setLoading(true);
 
     try {
-      // ✅ Cleaner Call
-      const res = await api.post("/api/auth/login", { email, password });
-      processLogin(res.data.token);
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      // API Call to Backend
+      const res = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/auth/login`,
+        {
+          email,
+          password,
+        },
+      );
 
-  // --- GOOGLE LOGIN ---
-  const handleGoogleSuccess = async (credentialResponse) => {
-    setError("");
-    setIsLoading(true);
-
-    try {
-      // ✅ Cleaner Call
-      const res = await api.post("/api/auth/google", {
-        token: credentialResponse.credential,
-      });
-      processLogin(res.data.token);
-    } catch (err) {
-      if (err.response && err.response.status === 404) {
-        setError("Access Denied: You are not a registered Admin.");
+      // ✅ Success: Pass token to AuthContext
+      // The context will handle localStorage and state updates
+      if (res.data && res.data.token) {
+        login(res.data.token);
+        navigate("/"); // Redirect to Dashboard
       } else {
-        setError("Google Login Failed. Try again.");
+        setError("Login successful but no token received.");
       }
+    } catch (err) {
+      console.error("Login Error:", err);
+      // specific error message from backend or generic fallback
+      const errorMsg =
+        err.response?.data?.message ||
+        "Login failed. Please check your credentials and try again.";
+      setError(errorMsg);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const processLogin = (token) => {
-    try {
-      const decoded = jwtDecode(token);
-      if (decoded.isAdmin === true) {
-        localStorage.setItem("auth_token", token);
-        onLogin(token);
-      } else {
-        setError("Access Denied: You do not have Admin privileges.");
-      }
-    } catch (e) {
-      setError("Invalid Token received.");
-    }
-  };
-
+  // 4. Render UI
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <img src={logo} alt="ASCON Logo" className="login-logo" />
-        <h2 className="login-title">Admin Portal</h2>
-        {error && <div className="login-error">{error}</div>}
+    <div
+      className="login-container"
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        backgroundColor: "#f4f6f9",
+      }}
+    >
+      <div
+        className="card shadow-sm p-4"
+        style={{
+          maxWidth: "400px",
+          width: "100%",
+          borderRadius: "10px",
+          border: "none",
+        }}
+      >
+        {/* Logo Section */}
+        <div className="text-center mb-4">
+          <img
+            src="/logo.png" // Assumes logo.png is in your public folder
+            alt="ASCON Logo"
+            style={{ width: "80px", marginBottom: "15px" }}
+          />
+          <h4 className="fw-bold text-dark">Admin Portal</h4>
+          <p className="text-muted small">Sign in to manage the platform</p>
+        </div>
 
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label>Email Address</label>
+        {/* Error Alert */}
+        {error && (
+          <div
+            className="alert alert-danger d-flex align-items-center"
+            role="alert"
+            style={{ fontSize: "0.9rem" }}
+          >
+            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+            <div>{error}</div>
+          </div>
+        )}
+
+        {/* Login Form */}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Email Address</label>
             <input
               type="email"
+              className="form-control"
+              placeholder="admin@ascon.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="Enter admin email"
-              className="login-input"
             />
           </div>
 
-          <div className="form-group">
-            <label>Password</label>
-            <div className="password-wrapper">
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Password</label>
+            <div className="input-group">
               <input
                 type={showPassword ? "text" : "password"}
+                className="form-control"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="Enter password"
-                className="login-input"
               />
               <button
+                className="btn btn-outline-secondary"
                 type="button"
-                className="password-toggle-btn"
                 onClick={() => setShowPassword(!showPassword)}
-                title={showPassword ? "Hide password" : "Show password"}
+                style={{ borderLeft: "none" }}
               >
-                {showPassword ? "🙈" : "👁️"}
+                {showPassword ? "Hide" : "Show"}
               </button>
             </div>
           </div>
 
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="form-check">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="rememberMe"
+              />
+              <label className="form-check-label small" htmlFor="rememberMe">
+                Remember me
+              </label>
+            </div>
+            <a
+              href="/reset-password"
+              className="text-decoration-none small text-primary"
+            >
+              Forgot Password?
+            </a>
+          </div>
+
           <button
             type="submit"
-            className="approve-btn login-btn"
-            disabled={isLoading}
+            className="btn btn-primary w-100 py-2 fw-bold"
+            disabled={loading}
+            style={{ backgroundColor: "#1B5E3A", borderColor: "#1B5E3A" }} // Uses your ASCON green
           >
-            {isLoading ? <span className="loading-spinner"></span> : "LOGIN"}
+            {loading ? (
+              <>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Signing in...
+              </>
+            ) : (
+              "Login"
+            )}
           </button>
         </form>
 
-        <div
-          style={{ display: "flex", alignItems: "center", margin: "20px 0" }}
-        >
-          <div
-            style={{ flex: 1, height: "1px", backgroundColor: "#ddd" }}
-          ></div>
-          <span style={{ padding: "0 10px", color: "#888", fontSize: "12px" }}>
-            OR
-          </span>
-          <div
-            style={{ flex: 1, height: "1px", backgroundColor: "#ddd" }}
-          ></div>
-        </div>
-
-        <div
-          className="google-login-container"
-          style={{ display: "flex", justifyContent: "center", width: "100%" }}
-        >
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => setError("Google Login Failed")}
-            theme="outline"
-            size="large"
-            width="300"
-          />
+        <div className="text-center mt-4">
+          <p className="text-muted small mb-0">
+            Having trouble?{" "}
+            <a href="mailto:support@ascon.com">Contact Support</a>
+          </p>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default Login;
