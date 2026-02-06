@@ -16,8 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); // Optional: Store decoded user info
   const [isLoading, setIsLoading] = useState(true);
 
-  // ✅ 1. MOVED UP & WRAPPED IN useCallback: Login Function
-  // We move this up so 'checkTokenExpiry' can call it.
+  // ✅ 1. Stable Login Function
   const login = useCallback((newToken, newRefreshToken = null) => {
     localStorage.setItem("auth_token", newToken);
     if (newRefreshToken) {
@@ -31,9 +30,9 @@ export const AuthProvider = ({ children }) => {
     } catch (e) {
       console.error("Failed to decode token on login");
     }
-  }, []); // Empty dependency array means this function never changes
+  }, []);
 
-  // ✅ 2. MOVED UP & WRAPPED IN useCallback: Logout Function
+  // ✅ 2. Stable Logout Function
   const logout = useCallback(() => {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("refresh_token");
@@ -41,8 +40,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   }, []);
 
-  // ✅ 3. WRAPPED IN useCallback: Silent Refresh Logic
-  // Now it depends on 'login', which is stable thanks to step 1.
+  // ✅ 3. Stable Silent Refresh Logic
   const checkTokenExpiry = useCallback(
     async (currentToken) => {
       try {
@@ -61,19 +59,18 @@ export const AuthProvider = ({ children }) => {
           );
 
           if (response.data && response.data.token) {
-            login(response.data.token); // Update state with new token (preserves refresh token)
+            login(response.data.token); // Update state with new token
             console.log("🔄 Session silently refreshed");
           }
         }
       } catch (error) {
         console.warn("Silent refresh failed or token invalid", error);
-        // Optional: logout() if refresh completely fails
       }
     },
     [login],
-  ); // ✅ Dependency added
+  );
 
-  // ✅ 4. UPDATED useEffect
+  // ✅ 4. INITIALIZATION EFFECT (Runs Only Once)
   useEffect(() => {
     const storedToken = localStorage.getItem("auth_token");
     if (storedToken) {
@@ -104,7 +101,7 @@ export const AuthProvider = ({ children }) => {
       }
     }
     setIsLoading(false);
-  }, [token, logout, checkTokenExpiry]); // ✅ All dependencies included
+  }, [logout, checkTokenExpiry]); // ❌ REMOVED 'token' from here to prevent loops
 
   return (
     <AuthContext.Provider value={{ token, user, isLoading, login, logout }}>
