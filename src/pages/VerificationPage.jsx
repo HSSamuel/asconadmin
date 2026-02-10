@@ -66,11 +66,15 @@ export default function VerificationPage() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        {/* LOGO HEADER */}
+        {/* LOGO HEADER - ✅ FIXED: Force Centralization */}
         <img
           src={logo}
           alt="ASCON Logo"
-          style={{ width: 80, marginBottom: 20 }}
+          style={{
+            width: 80,
+            display: "block",
+            margin: "0 auto 20px auto",
+          }}
           onError={(e) => (e.target.style.display = "none")} // Hide if missing
         />
 
@@ -175,12 +179,14 @@ const styles = {
     height: "130px",
     borderRadius: "50%",
     objectFit: "cover",
-    margin: "20px auto",
+    // ✅ REDUCED BOTTOM MARGIN (was 20px)
+    margin: "20px auto 8px auto",
     border: "5px solid #1B5E3A",
     boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
   },
   name: {
-    margin: "15px 0 5px 0",
+    // ✅ REDUCED TOP MARGIN (was 15px)
+    margin: "5px 0 5px 0",
     color: "#333",
     fontSize: "22px",
     fontWeight: "800",
