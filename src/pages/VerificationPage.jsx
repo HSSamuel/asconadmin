@@ -42,13 +42,11 @@ export default function VerificationPage() {
 
   // 5. Helper: Dynamic Badge Color
   const getBadgeStyle = (userStatus) => {
-    // If status is undefined, default to Active (Green) to be safe
     const safeStatus = userStatus || "Active";
-
     if (safeStatus === "Active") {
       return { background: "#1B5E3A", color: "white" }; // ✅ ASCON Green
     } else {
-      return { background: "#D32F2F", color: "white" }; // 🔴 Red for Suspended/Pending
+      return { background: "#D32F2F", color: "white" }; // 🔴 Red for Suspended
     }
   };
 
@@ -66,16 +64,12 @@ export default function VerificationPage() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        {/* LOGO HEADER - ✅ FIXED: Force Centralization */}
+        {/* LOGO HEADER */}
         <img
           src={logo}
           alt="ASCON Logo"
-          style={{
-            width: 80,
-            display: "block",
-            margin: "0 auto 20px auto",
-          }}
-          onError={(e) => (e.target.style.display = "none")} // Hide if missing
+          style={styles.logo}
+          onError={(e) => (e.target.style.display = "none")}
         />
 
         {/* STATE 1: LOADING */}
@@ -106,12 +100,15 @@ export default function VerificationPage() {
         {/* STATE 3: VALID / VERIFIED */}
         {status === "valid" && data && (
           <>
+            {/* ✅ 1. SUCCESS BADGE (Always First) */}
             <div style={styles.successBox}>
               <h2 style={styles.successTitle}>✅ VERIFIED ALUMNUS</h2>
             </div>
 
+            {/* ✅ 2. AVATAR (Below Badge) */}
             <img src={getImageSource()} alt="Profile" style={styles.avatar} />
 
+            {/* ✅ 3. NAME (Below Avatar) */}
             <h2 style={styles.name}>
               {data.fullName ? data.fullName.toUpperCase() : "UNKNOWN USER"}
             </h2>
@@ -151,7 +148,7 @@ export default function VerificationPage() {
 }
 
 // ==========================================
-// 🎨 STYLES OBJECT
+// 🎨 STYLES OBJECT (Flexbox Fixed)
 // ==========================================
 const styles = {
   container: {
@@ -168,24 +165,33 @@ const styles = {
     padding: "40px",
     borderRadius: "20px",
     boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
-    textAlign: "center",
     maxWidth: "400px",
     width: "100%",
     position: "relative",
     overflow: "hidden",
+    // ✅ FLEXBOX ENFORCES VERTICAL STACKING & CENTERING
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  logo: {
+    width: "80px",
+    marginBottom: "20px",
+    objectFit: "contain",
   },
   avatar: {
     width: "130px",
     height: "130px",
     borderRadius: "50%",
     objectFit: "cover",
-    // ✅ REDUCED BOTTOM MARGIN (was 20px)
-    margin: "20px auto 8px auto",
+    // ✅ Removed auto margins (Flexbox handles centering)
+    marginTop: "20px",
+    marginBottom: "8px",
     border: "5px solid #1B5E3A",
     boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
   },
   name: {
-    // ✅ REDUCED TOP MARGIN (was 15px)
     margin: "5px 0 5px 0",
     color: "#333",
     fontSize: "22px",
@@ -210,10 +216,10 @@ const styles = {
   },
   successBox: {
     border: "2px solid #1B5E3A",
-    padding: "8px",
-    display: "inline-block",
+    padding: "8px 16px",
     borderRadius: "10px",
     background: "rgba(27, 94, 58, 0.05)",
+    marginBottom: "5px", // Slight spacing before avatar
   },
   successTitle: {
     color: "#1B5E3A",
@@ -224,7 +230,6 @@ const styles = {
   errorBox: {
     border: "2px solid #D32F2F",
     padding: "8px",
-    display: "inline-block",
     borderRadius: "10px",
     background: "rgba(211, 47, 47, 0.05)",
   },
@@ -239,6 +244,7 @@ const styles = {
     flexDirection: "column",
     margin: "12px 0",
     alignItems: "center",
+    width: "100%",
   },
   label: {
     fontSize: "11px",
